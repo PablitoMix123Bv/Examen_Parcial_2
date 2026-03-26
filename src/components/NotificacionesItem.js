@@ -1,51 +1,69 @@
-import React from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View, Animated, Vibration } from 'react-native';
 
-const NotificacionItem = ({item, onMarkAsRead}) => {
-    return(
-        <TouchableOpacity styles = {[styles.card, item.leida && styles.cardRead]} onPress={() => onMarkAsRead(item.id)}>
-            <View style = {styles.textContainer}>
-                <Text style = {[styles.message, item.leida && styles.textRead]}>
-                    {item.mensaje}
-                </Text>
-            </View>
-            {!item.leida && <View style = {styles.unreadDot}/>}
-        </TouchableOpacity>
-    );
+const NotificacionItem = ({ item, onMarkAsRead }) => {
+  // Animación básica
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Vibracion de la noti
+    Vibration.vibrate(100);
+
+    // Animación cuando aparecen las notis 
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
+
+  return (
+    <Animated.View style={{ opacity: fadeAnim }}>
+      <TouchableOpacity
+        style={[styles.card, item.leida ? styles.cardRead : styles.cardUnread]}
+        onPress={() => onMarkAsRead(item.id)}
+      >
+        <Text style={styles.message}>
+          {item.mensaje}
+        </Text>
+
+        <Text style={styles.statusText}>
+          Estado: {item.leida ? 'Leída' : 'No leída'}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
     padding: 15,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    borderRadius: 8,
     marginBottom: 10,
-    marginHorizontal: 15,
-    // Sombra para iOS
+    // Sombra básica (puntos extra)
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    // Sombra para Android
+    shadowOpacity: 0.2,
     elevation: 3,
   },
+  cardUnread: {
+    backgroundColor: 'white',
+    // Diferente estilo (borde azul) para no leídas (puntos extra)
+    borderLeftWidth: 5,
+    borderLeftColor: 'blue',
+  },
   cardRead: {
-    backgroundColor: '#f0f0f0',
-    elevation: 0,
-    opacity: 0.7,
+    backgroundColor: '#e0e0e0', // fondo gris claro
   },
-  textContainer: { flex: 1 },
-  message: { fontSize: 16, color: '#333', fontWeight: '500' },
-  textRead: { color: '#888', textDecorationLine: 'line-through' },
-  unreadDot: {
-    width: 10,
-    height: 10,
-    backgroundColor: '#007AFF',
-    borderRadius: 5,
-    marginLeft: 10,
+  message: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
   },
+  statusText: {
+    color: 'gray',
+    marginTop: 5,
+  }
 });
 
 export default NotificacionItem;
